@@ -1,11 +1,11 @@
-
 import React, { useEffect, useState } from "react";
 import Card from "./Card";
-import "bootstrap/dist/css/bootstrap.min.css"; // Import Bootstrap CSS
+import "bootstrap/dist/css/bootstrap.min.css";
 
 const Newsapp = () => {
   const [search, setSearch] = useState("india");
   const [newsData, setNewsData] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(6); // show only 6 news initially
 
   const API_KEY = "a9a4238b11f946609a65792921255898";
 
@@ -15,8 +15,9 @@ const Newsapp = () => {
         `https://newsapi.org/v2/everything?q=${search}&apiKey=${API_KEY}`
       );
       const jsonData = await response.json();
-      console.log(jsonData.articles);
-      setNewsData(jsonData.articles || []); // Ensuring it's always an array
+
+      setNewsData(jsonData.articles || []);
+      setVisibleCount(6); // reset visible count every time new category/search
     } catch (error) {
       console.error("Error fetching news:", error);
     }
@@ -32,7 +33,12 @@ const Newsapp = () => {
 
   const userInput = (event) => {
     setSearch(event.target.value);
-    getData(); // Fetch news based on category
+    getData();
+  };
+
+  // Load all news on “View More”
+  const handleViewMore = () => {
+    setVisibleCount(newsData.length);
   };
 
   return (
@@ -41,18 +47,6 @@ const Newsapp = () => {
       <nav className="navbar navbar-expand-lg navbar-dark bg-dark p-3">
         <div className="container-fluid">
           <h1 className="navbar-brand">Trending News</h1>
-          <ul className="navbar-nav me-auto">
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                All News
-              </a>
-            </li>
-            <li className="nav-item">
-              <a className="nav-link" href="#">
-                Trending
-              </a>
-            </li>
-          </ul>
           <form className="d-flex">
             <input
               type="text"
@@ -88,8 +82,21 @@ const Newsapp = () => {
 
       {/* News Cards */}
       <div className="row">
-        {newsData.length > 0 ? <Card data={newsData} /> : <p>No news found.</p>}
+        {newsData.length > 0 ? (
+          <Card data={newsData.slice(0, visibleCount)} />
+        ) : (
+          <p>No news found.</p>
+        )}
       </div>
+
+      {/* View More Button */}
+      {visibleCount < newsData.length && (
+        <div className="text-center my-4">
+          <button className="btn btn-success" onClick={handleViewMore}>
+            View More
+          </button>
+        </div>
+      )}
     </div>
   );
 };
